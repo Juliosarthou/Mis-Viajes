@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -11,9 +13,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     val keystorePropertiesFile = rootProject.file("key.properties")
-    val keystoreProperties = java.util.Properties()
+    val keystoreProperties = Properties()
     if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(new java.io.FileInputStream(keystorePropertiesFile))
+        keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
     }
 
     compileOptions {
@@ -27,10 +29,15 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            val alias = keystoreProperties.getProperty("keyAlias")
+            val keyPass = keystoreProperties.getProperty("keyPassword")
+            val storePath = keystoreProperties.getProperty("storeFile")
+            val storePass = keystoreProperties.getProperty("storePassword")
+
+            if (alias != null) keyAlias = alias
+            if (keyPass != null) keyPassword = keyPass
+            if (storePath != null) storeFile = file(storePath)
+            if (storePass != null) storePassword = storePass
         }
     }
 
